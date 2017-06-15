@@ -1,12 +1,15 @@
+// 使用 jsonp 模块跨域
 import jsonp from 'common/js/jsonp'
 import {
   commonParams,
   options
 } from './config'
+// 不需要跨域时使用 axios 的 promise 化
 import axios from 'axios'
-
+// 获取轮播图信息
 export function getRecommend() {
   const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
+  // Object.assign 用于合并对象
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
     uin: 0,
@@ -14,7 +17,7 @@ export function getRecommend() {
   })
   return jsonp(url, data, options)
 }
-
+// 获取热门歌单列表
 export function getDiscList() {
   const url = '/api/getDiscList'
 

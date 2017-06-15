@@ -1,5 +1,10 @@
 <template>
-    <Scroll class="listview" :data="data" :listenScroll="listenScroll" :probeType="probeType" @scroll="scroll" ref="listview">
+    <Scroll class="listview" 
+            :data="data" 
+            :listenScroll="listenScroll" 
+            :probeType="probeType" 
+            @scroll="scroll" 
+            ref="listview">
         <ul>
             <li v-for="group in data" class="list-group" ref="listGroup">
                 <h2 class="list-group-title">{{group.title}}</h2>
@@ -38,26 +43,36 @@ export default {
     },
     data() {
         return {
+            // 当前列表的 scrollY
             scrollY: -1,
+            // 当前列表所在的对应索引
             currentIndex: 0,
             diff: -1
         }
     },
+    // 定义不被监控的 data
     created() {
+        // 当前所选中的歌手信息
         this.touch = {}
+        // 是否监听滚动
         this.listenScroll = true
+        // 列表对应的滚动高度数组
         this.listHeight = []
+        // better-scroll 参数 除了实时派发scroll事件，在swipe的情况下仍然能实时派发scroll事件
         this.probeType = 3
     },
     computed: {
         // 右侧栏的文字
         shortcutList() {
+            // map 与 forEach 类似，区别在于有 map 能 return 值
             return this.data.map((group) => {
+                // substr(0, 1) 提取第一个字符
                 return group.title.substr(0, 1)
             })
         },
         // fixed栏的文字
         fixedTitle() {
+            // 向上滑到顶部 0 以上时显示空
             if (this.scrollY > 0) {
                 return ''
             }
@@ -65,17 +80,21 @@ export default {
         }
     },
     methods: {
-        // 点击右侧栏滚动到对应的title
+        // 点击右侧栏滚动到对应的 title
         onShortcutTouchStart(e) {
+            // 获取所点击的索引
             let anchorIndex = getData(e.target, 'index')
             let firstTouch = e.touches[0]
+            // 设置要滚动到的索引
             this.touch.anchorIndex = anchorIndex
+            // 设置 y1 为浏览器顶部到该触摸的 Y 轴距离
             this.touch.y1 = firstTouch.pageY
             this._scrollTo(anchorIndex);
         },
         // 移动右侧栏滚动到对应的title
         onShortcutTouchMove(e) {
             let firstTouch = e.touches[0]
+            // 设置 y2 为浏览器顶部到该触摸的新的 Y 轴距离
             this.touch.y2 = firstTouch.pageY
             // (touchmove获得的值 - touchstart获得的值)/每个索引的高度 = 偏移索引
             let delta = Math.floor((this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT)
@@ -84,20 +103,25 @@ export default {
             this._scrollTo(anchorIndex);
         },
         _scrollTo(index) {
+            // 索引不存在或者索引为0的时候 return 不操作
             if (!index && index != 0) {
                 return
             }
+            // 索引小于 0 时 默认为 0
             if (index < 0) {
                 index = 0
             } else if (index > this.listHeight.length - 2) {
                 index = this.listHeight.length - 2
             }
+            // 跳转到指定索引的位置
             this.scrollY = -this.listHeight[index]
             this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
         },
+        // 滚动时改变
         scroll(pos) {
             this.scrollY = pos.y
         },
+        // 计算各个滚动高度 push 进数组
         _calculateHeight() {
             this.listHeight = []
             const list = this.$refs.listGroup
@@ -121,12 +145,12 @@ export default {
         },
         scrollY(newY) {
             const listHeight = this.listHeight
-            // 当滚动到顶部，newY>0
+            // 当滚动到顶部或更多时，索引是 0
             if (newY > 0) {
                 this.currentIndex = 0
                 return
             }
-            // 在中间部分滚动
+            // 在中间部分滚动，索引是 i
             for (let i = 0; i < listHeight.length - 1; i++) {
                 let height1 = listHeight[i]
                 let height2 = listHeight[i + 1]
@@ -141,7 +165,7 @@ export default {
         },
         diff(newVal) {
             let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
-            if (this.fixedTop === fixedTop) {
+            if (this.fixedTop == fixedTop) {
                 return
             }
             this.fixedTop = fixedTop

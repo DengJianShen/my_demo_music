@@ -1,6 +1,8 @@
-import {commonParams} from './config'
+import {
+  commonParams
+} from './config'
 import axios from 'axios'
-
+// 获取歌词
 export function getLyric(mid) {
   const url = '/api/lyric'
 

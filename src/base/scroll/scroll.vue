@@ -23,6 +23,10 @@ export default {
         data: {
             type: Array,
             default: null
+        },
+        refreshDelay: {
+            type: Number,
+            default: 20
         }
     },
     mounted() {
