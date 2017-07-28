@@ -1,38 +1,88 @@
 <template>
   <div class="search">
     <div class="search-box-wrapper">
-      <search-box ref="searchBox"></search-box>
+      <search-box ref="searchBox" @query="onQueryChange"></search-box>
     </div>
-    <div class="shortcut-wrapper">
-      <div class="shortcut">
-        <div class="hot-key">
-          <h1 class="title">热门搜索</h1>
-          <ul>
-            <li @click="addQuery(item.k)" class="item" v-for="item in hotKey">
-              <span>{{item.k}}</span>
-            </li>
-          </ul>
+    <div ref="shortcutWrapper" class="shortcut-wrapper" v-show="!query">
+      <Scroll :refreshDelay="refreshDelay" ref="shortcut" class="shortcut" :data="shortcut">
+        <div>
+          <div class="hot-key">
+            <h1 class="title">热门搜索</h1>
+            <ul>
+              <li @click="addQuery(item.k)" class="item" v-for="item in hotKey">
+                <span>{{item.k}}</span>
+              </li>
+            </ul>
+          </div>
+          <div class="search-history" v-show="searchHistory.length">
+            <h1 class="title">
+              <span class="text">搜索历史</span>
+              <span class="clear" @click="showConfirm">
+                <i class="icon-clear"></i>
+              </span>
+            </h1>
+            <search-list @select="addQuery" @delete="deleteSearchHistory" :searches="searchHistory"></search-list>
+          </div>
         </div>
-      </div>
+      </Scroll>
     </div>
+    <div ref="searchResult" class="search-result" v-show="query">
+      <Suggest ref="suggest" @select="saveSearch" @listScroll="blurInput" :query="query"></Suggest>
+    </div>
+    <Confirm ref="confirm" @confirm="clearSearchHistory" text="是否清空所有搜索历史" confirmBtnText="清空"></Confirm>
+    <router-view></router-view>
   </div>
 </template>
 <script>
   import SearchBox from 'base/search-box/search-box'
+  import SearchList from 'base/search-list/search-list'
+  import Suggest from 'components/suggest/suggest'  
+  import Scroll from 'base/scroll/scroll'
+  import Confirm from 'base/confirm/confirm'
   import { getHotKey } from 'api/search'
   import { ERR_OK } from 'api/config'
+  import { mapGetters,mapActions } from 'vuex'
   export default{
     data() {
       return {
-        hotKey: []
+        hotKey: [],
+        query: '',
+        refreshDelay: 120
       }
     },
     created() {
       this._getHotKey()
     },
+    computed: {
+      shortcut() {
+        return this.hotKey.concat(this.searchHistory)
+      },
+      ...mapGetters([
+        'searchHistory',
+        'playlist'
+      ])
+    },
     methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+
+        this.$refs.searchResult.style.bottom = bottom
+        this.$refs.suggest.refresh()
+
+        this.$refs.shortcutWrapper.style.bottom = bottom
+        this.$refs.shortcut.refresh()
+      },
+      showConfirm() {
+        this.$refs.confirm.show()
+      },
+      saveSearch() {
+        this.saveSearchHistory(this.query)
+      },
+      blurInput() {
+        this.$refs.searchBox.blur()
+      },
       addQuery(query) {
-        this.$refs.SearchBox.setQuery(query)
+        this.$refs.searchBox.setQuery(query)
       },
       _getHotKey() {
         getHotKey().then((res) => {
@@ -40,10 +90,40 @@
             this.hotKey = res.data.hotkey.slice(0,10)
           }
         })
-      }
+      },
+      onQueryChange(query){
+        this.query = query;
+      },
+      ...mapActions([
+        'clearSearchHistory',
+        'deleteSearchHistory',
+        'saveSearchHistory'
+      ])
     },
     components: {
-      SearchBox
+      SearchBox,
+      SearchList,
+      Suggest,
+      Confirm,
+      Scroll
+    },
+    mounted() {
+      this.handlePlaylist(this.playlist)
+    },
+    activated() {
+      this.handlePlaylist(this.playlist)
+    },
+    watch: {
+      query(newQuery) {
+        if (!newQuery) {
+          setTimeout(() => {
+            this.$refs.shortcut.refresh()
+          }, 20)
+        }
+      },
+      playlist(newVal) {
+        this.handlePlaylist(newVal)
+      }
     }
   }
 </script>

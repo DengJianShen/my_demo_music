@@ -109,6 +109,7 @@ export default {
       if (this.loop) {
         pageIndex += 1
       }
+      // 自动切换当前轮播图
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400)
       }, this.interval)

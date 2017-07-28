@@ -93,32 +93,43 @@ export default {
         this.listenScroll = true
     },
     mounted() {
+        // 图片高度
         this.imageHeight = this.$refs.bgImage.clientHeight
+        // 滚动界限
         this.minTransalteY = -this.imageHeight + RESERVED_HEIGHT
         this.$refs.list.$el.style.top = `${this.imageHeight}px`
     },
     watch: {
         // 根据 scrollY 对图片进行放大及缩小模糊
         scrollY(newVal) {
+            // 偏移滚动与滚动界限取最小值
             let translateY = Math.max(this.minTransalteY, newVal)
             let zIndex = 0
             let scale = 1
             let blur = 0
+            // 改变列表的translate位置
             this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
+            // 缩放百分比
             const percent = Math.abs(newVal / this.imageHeight)
+            // 向下滚动缩放
             if (newVal > 0) {
                 scale = 1 + percent
                 zIndex = 10
-            } else {
+            }
+            // 向上滚动模糊 
+            else {
                 blur = Math.min(20 * percent, 20)
             }
             this.$refs.filter.style[backdrop] = `blur(${blur}px)`
+            // 小于界限
             if (newVal < this.minTransalteY) {
                 zIndex = 10
                 this.$refs.bgImage.style.paddingTop = 0
                 this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
                 this.$refs.playWrapper.style.display = 'none'
-            } else {
+            }
+            // 大于界限 
+            else {
                 this.$refs.bgImage.style.paddingTop = '70%'
                 this.$refs.bgImage.style.height = 0
                 this.$refs.playWrapper.style.display = 'block'

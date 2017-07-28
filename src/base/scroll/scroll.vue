@@ -27,6 +27,14 @@ export default {
         refreshDelay: {
             type: Number,
             default: 20
+        },
+        pullup: {
+            type: Boolean,
+            default: false
+        },
+        beforeScroll: {
+            type: Boolean,
+            default: false
         }
     },
     mounted() {
@@ -39,6 +47,7 @@ export default {
             if (!this.$refs.wrapper) {
                 return
             }
+            // 初始化
             this.scroll = new BScroll(this.$refs.wrapper, {
                 probeType: this.probeType,
                 click: this.click
@@ -48,6 +57,20 @@ export default {
                 // 把滚动事件获得的pos值广播给父组件
                 this.scroll.on('scroll', (pos) => {
                     me.$emit('scroll', pos)
+                })
+            }
+            // 监听上拉刷新
+            if (this.pullup) {
+                this.scroll.on('scrollEnd', () => {
+                    if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+                        this.$emit('scrollToEnd')
+                    }
+                })
+            }
+            // 监听滚动前
+            if (this.beforeScroll) {
+                this.scroll.on('beforeScrollStart', () => {
+                    this.$emit('beforeScroll')
                 })
             }
         },

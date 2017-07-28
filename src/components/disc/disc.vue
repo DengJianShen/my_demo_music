@@ -6,10 +6,10 @@
 
 <script>
   import MusicList from 'components/music-list/music-list'
-  import {getSongList} from 'api/recommend'
-  import {ERR_OK} from 'api/config'
-  import {mapGetters} from 'vuex'
-  import {createSong} from 'common/js/song'
+  import { getSongList } from 'api/recommend'
+  import { ERR_OK } from 'api/config'
+  import { mapGetters } from 'vuex'
+  import { createSong } from 'common/js/song'
 
   export default {
     computed: {
@@ -37,12 +37,14 @@
           this.$router.push('/recommend')
           return
         }
+        // 获取歌单的歌曲列表
         getSongList(this.disc.dissid).then((res) => {
           if (res.code === ERR_OK) {
             this.songs = this._normalizeSongs(res.cdlist[0].songlist)
           }
         })
       },
+      // 格式化歌曲列表数据
       _normalizeSongs(list) {
         let ret = []
         list.forEach((musicData) => {
